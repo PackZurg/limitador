@@ -1,0 +1,61 @@
+#!/bin/bash 
+# Autor: @Fs0usa
+# Data de criação: 02/04/17
+# Objetivo: Monitorar o uso do limite
+# Descrição: 
+# Projeto: Fechado
+# Utiluze por sua conta e risco, não modifique o script com o intuito
+# de ganhar em cima de tal.
+
+# Tabelas de cores que eu utilizo.
+fim="tput sgr0"
+bold="tput bold"
+vermelho="tput setaf 1"
+verde="tput setaf 2"
+amarelo="tput setaf 3"
+azul="tput setaf 4"
+roxo="tput setaf 5"
+ciano="tput setaf 6"
+branco="tput setaf 7"
+limpa="tput setaf 9"
+brilho="tput setab 7"
+# Inicio do script
+
+while true
+do
+
+if [ -e /bin/logs.pack/usuarios.pack.db ]
+then
+clear
+else
+$vermelho ; $bold ; echo "
+O arquivo de database não existe."
+$fim
+exit 1
+fi
+
+# inicio da tabela
+	clear
+    $verde ; $bold
+	echo "Pressione 'q' para sair."; $fim; $branco
+	echo "--------------------------------------------------------"; $fim; $vermelho; $bold; $brilho
+    echo "          Usuários        |        Status               "; $fim; $branco; $bold
+    echo "--------------------------------------------------------"; $fim	
+
+		while read datab
+        do
+	    users="$(echo $datab | cut -d":" -f1)"
+	    limite="$(echo $datab | cut -d":" -f2)"
+		ps x | grep [[:space:]]$users[[:space:]] | grep -v grep | grep -v pts > /bin/logs.pack/logs.temp
+		atual="$(cat /bin/logs.pack/logs.temp | wc -l)"
+        $ciano ; $bold
+		printf '  %-33s%s\n' $users $atual:$limite; $fim; $branco
+    echo "--------------------------------------------------------"; $fim
+        done < /bin/logs.pack/usuarios.pack.db
+
+read -t5 -n1 resp
+if [ "$resp" = "q" ]
+then
+exit
+fi
+done

@@ -1,0 +1,94 @@
+#!/bin/bash
+# Autor: @Fs0usa
+# Data de criação: 01/04/17
+# Objetivo: Limitar o numero de conexoes simultaneas
+# Descrição: 
+# Projeto: Fechado
+# Utiluze por sua conta e risco, não modifique o script com o intuito
+# de ganhar em cima de tal.
+
+# Tabelas de cores que eu utilizo.
+fim="tput sgr0"
+bold="tput bold"
+vermelho="tput setaf 1"
+verde="tput setaf 2"
+amarelo="tput setaf 3"
+azul="tput setaf 4"
+roxo="tput setaf 5"
+ciano="tput setaf 6"
+branco="tput setaf 7"
+limpa="tput setaf 9"
+# Inicio do script
+numero_da_linha=1
+while true
+do
+	if [ -e /bin/logs.pack/usuarios.pack.db ]
+	then
+	clear
+	else
+	$vermelho; $bold
+	echo "O arquivo de database ainda não existe, defina o limite."
+	$fim
+	fi
+
+# numero maximo de linhas, para que o head não vá até na casa do caralho
+numero_max=`cat /bin/logs.pack/usuarios.pack.db | wc -l`
+# compara o numero de linhas
+	if [ $numero_da_linha -gt $numero_max ]
+	then
+		numero_da_linha=1
+	fi
+users=`awk -F":" '{print $1}' /bin/logs.pack/usuarios.pack.db | head -$numero_da_linha | tail -1`
+limit=`awk -F":" '{print $2}' /bin/logs.pack/usuarios.pack.db | head -$numero_da_linha | tail -1`
+$vermelho; $bold
+echo "Ctrl +a+d {Para sair da seção screen}, o limite esta ativado.
+Vizualize o andamento no script monitor."; $fim
+
+    for j in $users
+    do
+        # número atual de conexões do usuário de acordo com a linha ($numero_da_linha)
+        atual=`ps -u $users | grep ssh* | wc -l`
+        # compara o numero atual, com o limite.
+        if [ $atual > $limit ]
+        then
+		tipo_do_limite=`awk -F":" '{print $3}' /bin/logs.pack/usuarios.pack.db | head -$numero_da_linha | tail -1`
+		
+		if [ $tipo_do_limite = 1 ];
+		then 
+		# troca a senha para ninguém possa reconectar
+            echo $users:nova_senha | chpasswd
+            # Queima o PID do usuário
+       	 
+			pids=`ps -u $users | grep ssh* | awk '{print $1}' > /bin/logs.pack/pids.txt`
+			
+            for user_kill in `cat /bin/logs.pack/pids.txt`
+   		 do
+   			 kill $user_kill
+			done
+            # reinicia o squid
+            service squid restart
+            service squid3 restart
+            # deleta o usuário
+            userdel $users
+            # manda para o arquivo de log.
+            echo "Usuário $users foi excluido" >> /bin/logs.pack/usuarios.pack.excluidos.db
+   		 sed -i "/$users/d" /bin/logs.pack/usuarios.pack.db
+			else
+			echo "Usuário $users foi desconectado" >> /bin/logs.pack/usuarios.desconectados.db
+			# Queima o PID do usuário
+       	 
+			pids=`ps -u $users | grep ssh* | awk '{print $1}' > /bin/logs.pack/pids.txt`
+			
+			excedentes=$(($atual-$limit))
+            for user_kill in `cat /bin/logs.pack/pids.txt | tail -$excedentes`
+   		 do
+   			 kill $user_kill
+			done
+  		  rm /bin/logs.pack/pids.txt
+		fi   
+    	fi
+    done
+# incremento para que a linha nao seja a mesma, e sim a seguinte.
+numero_da_linha=$(($numero_da_linha + 1))
+sleep 5
+done

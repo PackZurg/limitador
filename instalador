@@ -1,0 +1,49 @@
+#!/bin/bash 
+# Autor: @Fs0usa
+# Data de criação/update: 14/04/17
+# Objetivo:
+# Descrição: 
+# Projeto: Fechado
+# Utiluze por sua conta e risco, não modifique o script com o intuito
+# de ganhar em cima de tal.
+
+# Tabelas de cores que eu utilizo.
+fim="tput sgr0"
+bold="tput bold"
+vermelho="tput setaf 1"
+verde="tput setaf 2"
+amarelo="tput setaf 3"
+azul="tput setaf 4"
+roxo="tput setaf 5"
+ciano="tput setaf 6"
+branco="tput setaf 7"
+limpa="tput setaf 9"
+azul2="\e[1;34m"
+ciano2="\e[1;36m"
+# Inicio do script
+mkdir /bin/logs.pack
+clear
+$verde ; $bold
+echo "Aguarde"
+# Instalações necessarias
+apt-get update >/dev/null
+apt-get install -y git >/dev/null
+apt-get install dos2unix > /dev/null
+apt-get install screen > /dev/null
+git clone https://github.com/Fs0usa/limitador.git
+cd limitador
+
+for i in `ls`
+do
+	rm /bin/$i
+	chmod +x $i
+	dos2unix $i
+	mv $i /bin
+done
+
+clear
+cd ..
+rm -rf instaldor limitador
+clear
+echo -e "$ciano2 Tudo pronto. o limitador já está rodando, apenas defina o limite para os usuários."
+$fim
