@@ -30,7 +30,7 @@ apt-get update >/dev/null
 apt-get install -y git >/dev/null
 apt-get install dos2unix > /dev/null
 apt-get install screen > /dev/null
-git clone https://github.com/PackZurg/limitador.git
+git clone https://github.com/Fs0usa/limitador.git
 cd limitador
 
 for i in `ls`
@@ -45,5 +45,6 @@ clear
 cd ..
 rm -rf instaldor limitador
 clear
-echo -e "$ciano2 Tudo pronto. o limitador já está rodando, apenas defina o limite para os usuários."
+echo -e "$ciano2 Tudo pronto. O limitador deve ser executador da seguinte forma: \n"; $branco
+echo -e "\t screen limitador \n E logo após pressionar ctrl + a + d\n"
 $fim
